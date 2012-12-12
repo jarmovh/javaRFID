@@ -14,18 +14,23 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JCheckBox;
 
+import sqlite.*;
+
 public class RFIDTagGainListener implements TagGainListener{
     
     private JTextField tagDataField;
     private JTextArea logTextArea;
     private JCheckBox tagAccessCheck;
+    private sqlite sql;
+    private String tagData;
     
     /** Creates a new instance of RFIDTagGainListener */
-    public RFIDTagGainListener(JTextField tagDataField, JTextArea logTextArea, JCheckBox tagAccessCheck)
+    public RFIDTagGainListener(JTextField tagDataField, JTextArea logTextArea, JCheckBox tagAccessCheck, sqlite sql)
     {
         this.tagDataField = tagDataField;
         this.logTextArea = logTextArea;
         this.tagAccessCheck = tagAccessCheck;
+        this.sql = sql;
     }
 
     public void tagGained(TagGainEvent tagGainEvent)
@@ -33,16 +38,35 @@ public class RFIDTagGainListener implements TagGainListener{
         try
         {
             RFIDPhidget rfid = (RFIDPhidget)tagGainEvent.getSource();
+            rfid.setOutputState(0, false); //reset state for output 0
             rfid.setLEDOn(true);
-            tagDataField.setText(tagGainEvent.getValue()); 
-            logTextArea.append("Tag entered " + tagGainEvent.getValue()+"\n");
+            tagData = tagGainEvent.getValue();
+            tagDataField.setText(tagData); 
+            logTextArea.append("Tag entered " + tagData+"\n");
             tagAccessCheck.setEnabled(true);
-
+            rfid.setOutputState(0, userAuthCheck(tagData)); //set state for output 0
         }
         catch (PhidgetException ex)
         {
             logTextArea.append("Phidget Error " + ex.getErrorNumber()+"\n");        
         }
+    }
+    
+    public boolean userAuthCheck(String tag)
+    {
+       int accessState = sql.getAccessState(tag);
+       if( accessState == 1 )
+       {
+           logTextArea.append("Access granted\n");
+           tagAccessCheck.setSelected(true);
+           return true;
+       }
+       else
+       {
+           logTextArea.append("Access denied\n");
+           tagAccessCheck.setSelected(false);
+           return false;
+       }
     }
     
 }

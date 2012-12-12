@@ -100,7 +100,7 @@ public class sqlite {
         }
     }
     
-        public void removeTagAccess(String tag)
+    public void removeTagAccess(String tag)
     {
         try
         { 
@@ -112,5 +112,28 @@ public class sqlite {
         {
             System.err.println(e.getMessage());
         }
+    }
+    
+    public int getAccessState(String tag)
+    {
+        int result = 0;
+        
+        try
+        { 
+            Statement statement = connection.createStatement();
+            statement.setQueryTimeout(30);
+            ResultSet rs = statement.executeQuery("SELECT allow FROM access WHERE tag='"+ tag + "'");
+            while(rs.next())
+            {
+              System.out.println("tag allow : " + rs.getInt("allow"));
+              result = rs.getInt("allow");
+            }
+        }
+        catch(SQLException e)
+        {
+            System.err.println(e.getMessage());
+        }   
+        
+        return result;
     }
 }

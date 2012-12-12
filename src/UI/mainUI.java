@@ -31,7 +31,6 @@ public class mainUI extends javax.swing.JFrame {
         initComponents();
         
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("RFID - full");
         setResizable(false);
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosed(java.awt.event.WindowEvent evt) {
@@ -253,13 +252,20 @@ public class mainUI extends javax.swing.JFrame {
     
     private void formWindowOpened(java.awt.event.WindowEvent evt) {                                  
         System.out.println("opening");
+        
+        try {
+            sql = new sqlite();
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(mainUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
         try
         {
             rfid = new RFIDPhidget();
 
             attach_listener = new RFIDAttachListener(this, this.logTextArea);
             detach_listener = new RFIDDetachListener(this, this.logTextArea);
-            tagGain_listener = new RFIDTagGainListener(this.tagDataField, this.logTextArea, this.tagAccessCheck);
+            tagGain_listener = new RFIDTagGainListener(this.tagDataField, this.logTextArea, this.tagAccessCheck, this.sql);
             tagLoss_listener = new RFIDTagLossListener(this.tagDataField, this.logTextArea, this.tagAccessCheck);
             error_listener = new RFIDErrorListener(this);
             
@@ -278,12 +284,6 @@ public class mainUI extends javax.swing.JFrame {
         
         logTextArea.setEditable(false);
         tagAccessCheck.setEnabled(false);
-        
-        try {
-            sql = new sqlite();
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(mainUI.class.getName()).log(Level.SEVERE, null, ex);
-        }
 
         sql.sqlite_open("access.sqlite.db");        
     }
